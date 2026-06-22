@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benchmark Precios — Portales Inmobiliarios MX</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #0f0f11;
+      --surface: #18181c;
+      --surface2: #1f1f25;
+      --border: #2a2a32;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --accent: #7c6af7;
+      --accent-soft: rgba(124, 106, 247, 0.12);
+      --green: #4ade80;
+      --yellow: #fbbf24;
+      --red: #f87171;
+      --proppit: #6ee7b7;
+      --inmuebles: #60a5fa;
+      --propiedades: #f9a8d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      padding: 48px 24px;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; }
+
+    header { margin-bottom: 48px; }
+
+    .eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    h1 span { color: var(--muted); font-weight: 300; }
+
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item { display: flex; align-items: center; gap: 6px; }
+
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Portal cards */
+    .portals-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .portal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .portal-card.proppit::before { background: var(--proppit); }
+    .portal-card.inmuebles::before { background: var(--inmuebles); }
+    .portal-card.propiedades::before { background: var(--propiedades); }
+
+    .portal-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .portal-url { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-bottom: 16px; }
+
+    .portal-stat { margin-top: 8px; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 2px; }
+    .stat-value { font-size: 13px; font-weight: 500; }
+
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .badge-verified { background: rgba(74, 222, 128, 0.12); color: var(--green); }
+    .badge-free { background: rgba(249, 168, 212, 0.12); color: var(--propiedades); }
+
+    /* Tabs for monthly/quarterly toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .toggle-btn {
+      padding: 7px 18px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .toggle-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Table */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 48px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead tr { background: var(--surface2); }
+
+    th {
+      padding: 14px 20px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th.portal-col { font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; }
+    th.portal-col.proppit { color: var(--proppit); }
+    th.portal-col.inmuebles { color: var(--inmuebles); }
+    th.portal-col.propiedades { color: var(--propiedades); }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(124, 106, 247, 0.03); }
+
+    .plan-name { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+    .plan-desc { font-size: 11px; color: var(--muted); }
+
+    .price {
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    .price-strike {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-bottom: 2px;
+    }
+
+    .price-note { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    .discount-badge {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(74, 222, 128, 0.12);
+      color: var(--green);
+      font-family: 'DM Mono', monospace;
+      margin-top: 3px;
+    }
+
+    .n-props { font-family: 'DM Mono', monospace; font-weight: 500; }
+
+    .popular-tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: rgba(124, 106, 247, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .free-cell { color: var(--propiedades); font-size: 12px; }
+    .na-cell { color: var(--muted); font-size: 11px; font-style: italic; }
+
+    /* Notes */
+    .notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .notes-title { font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+
+    .note-item {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .note-item::before { content: '—'; color: var(--border); flex-shrink: 0; }
+    .note-item strong { color: var(--text); }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .portals-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 22px; }
+      td, th { padding: 10px 12px; font-size: 12px; }
+      .price { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Benchmark competitivo · México</div>
+    <h1>Precios de portales inmobiliarios <span>para profesionales</span></h1>
+    <div class="meta">
+      <div class="meta-item"><div class="dot"></div> Última actualización: junio 2026</div>
+      <div class="meta-item"><div class="dot" style="background:var(--green)"></div> 3 portales verificados</div>
+      <div class="meta-item"><div class="dot" style="background:var(--muted)"></div> Mercado: México</div>
+    </div>
+  </header>
+
+  <!-- Portal cards -->
+  <div class="section-label">Portales analizados</div>
+  <div class="portals-grid">
+
+    <div class="portal-card proppit">
+      <div class="portal-name">Proppit <span style="font-size:10px;color:var(--muted);font-weight:400;">by Lamudi</span></div>
+      <div class="portal-url">proppit.com/?country=mx</div>
+      <div class="portal-stat">
+        <div class="stat-label">Modelo</div>
+        <div class="stat-value">Multi-portal · distribución simultánea</div>
+      </div>
+      <div class="portal-stat" style="margin-top:10px;">
+        <div class="stat-label">Planes desde</div>
+        <div class="stat-value" style="color:var(--proppit);">$720 MXN/mes + IVA</div>
+      </div>
+      <div style="margin-top:10px;"><span class="badge badge-verified">✓ Verificado jun 2026</span></div>
+    </div>
+
+    <div class="portal-card inmuebles">
+      <div class="portal-name">Inmuebles24</div>
+      <div class="portal-url">inmuebles24.com</div>
+      <div class="portal-stat">
+        <div class="stat-label">Modelo</div>
+        <div class="stat-value">Portal directo · por volumen de anuncios</div>
+      </div>
+      <div class="portal-stat" style="margin-top:10px;">
+        <div class="stat-label">Planes desde</div>
+        <div class="stat-value" style="color:var(--inmuebles);">$3,549 MXN/mes + IVA</div>
+      </div>
+      <div style="margin-top:10px;"><span class="badge badge-verified">✓ Verificado jun 2026</span></div>
+    </div>
+
+    <div class="portal-card propiedades">
+      <div class="portal-name">Propiedades.com</div>
+      <div class="portal-url">propiedades.com</div>
+      <div class="portal-stat">
+        <div class="stat-label">Modelo</div>
+        <div class="stat-value">Portal freemium + <span style="color:var(--propiedades);">iBuyer</span> (compra directa vía TuHabi)</div>
+      </div>
+      <div class="portal-stat" style="margin-top:10px;">
+        <div class="stat-label">Precio base</div>
+        <div class="stat-value" style="color:var(--propiedades);">Gratuito ilimitado</div>
+      </div>
+      <div style="margin-top:10px;"><span class="badge badge-verified">✓ Verificado jun 2026</span></div>
+    </div>
+
+  </div>
+
+  <!-- Proppit table -->
+  <div class="toggle-row">
+    <div class="section-label" style="margin-bottom:0;border:none;padding:0;">Proppit — Planes Pack Agencias</div>
+    <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">* Precios + IVA · renovación automática · no válidos para proyectos</div>
+  </div>
+
+  <div class="table-wrapper" style="margin-bottom:32px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Propiedades</th>
+          <th>Destacados incluidos</th>
+          <th>Precio mensual</th>
+          <th>Precio trimestral</th>
+          <th>Descuento trimestral</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="n-props">1</span></td>
+          <td>1 destacado</td>
+          <td><div class="price" style="color:var(--proppit);">$720</div></td>
+          <td><span class="na-cell">No disponible</span></td>
+          <td><span class="na-cell">—</span></td>
+        </tr>
+        <tr>
+          <td><span class="n-props">10</span></td>
+          <td>5 destacados</td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$1,430</div>
+            <div class="price-strike">$1,983</div>
+            <span class="discount-badge">−28%</span>
+          </td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$3,300</div>
+            <div class="price-strike">$5,948</div>
+            <span class="discount-badge">−45%</span>
+          </td>
+          <td><span class="discount-badge">+17pp vs mensual</span></td>
+        </tr>
+        <tr style="background: rgba(124,106,247,0.04);">
+          <td><span class="n-props">10</span> <span class="popular-tag">más contratado</span></td>
+          <td>5 destacados</td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$1,650</div>
+            <div class="price-note">Plan alternativo mensual</div>
+          </td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$3,300</div>
+            <div class="price-strike">$5,948</div>
+            <span class="discount-badge">−45%</span>
+          </td>
+          <td><span class="discount-badge">−45% vs precio base</span></td>
+        </tr>
+        <tr>
+          <td><span class="n-props">15</span></td>
+          <td>8 destacados</td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$1,650</div>
+            <div class="price-strike">$2,909</div>
+            <span class="discount-badge">−43%</span>
+          </td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$4,800</div>
+            <div class="price-strike">$8,727</div>
+            <span class="discount-badge">−45%</span>
+          </td>
+          <td><span class="discount-badge">+2pp vs mensual</span></td>
+        </tr>
+        <tr>
+          <td><span class="n-props">25</span></td>
+          <td>13 destacados</td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$2,400</div>
+            <div class="price-strike">$4,227</div>
+            <span class="discount-badge">−43%</span>
+          </td>
+          <td>
+            <div class="price" style="color:var(--proppit);">$7,000</div>
+            <div class="price-strike">$12,680</div>
+            <span class="discount-badge">−45%</span>
+          </td>
+          <td><span class="discount-badge">+2pp vs mensual</span></td>
+        </tr>
+        <tr>
+          <td><span class="n-props">+25</span></td>
+          <td>—</td>
+          <td colspan="3" style="color:var(--muted);font-size:12px;font-style:italic;">Plan enterprise · requiere contacto comercial</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Inmuebles24 table -->
+  <div class="section-label">Inmuebles24 — Planes para profesionales</div>
+  <div class="table-wrapper" style="margin-bottom:32px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Anuncios / mes</th>
+          <th>Visibilidad</th>
+          <th>Duración</th>
+          <th class="portal-col inmuebles">Precio (IVA incl.)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="plan-name">5 Simples</div><div class="plan-desc">Entrada al mercado</div></td>
+          <td><span class="n-props">5</span></td>
+          <td>Estándar · visitas moderadas</td>
+          <td>30 días · renovación auto.</td>
+          <td><div class="price" style="color:var(--inmuebles);">$3,549.60</div></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">10 Simples</div><div class="plan-desc">Cartera mediana</div></td>
+          <td><span class="n-props">10</span></td>
+          <td>Estándar · visitas moderadas</td>
+          <td>30 días · renovación auto.</td>
+          <td><div class="price" style="color:var(--inmuebles);">$5,272.20</div></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">5 Destacados</div><div class="plan-desc">Mayor visibilidad</div></td>
+          <td><span class="n-props">5</span></td>
+          <td>Destacada · visitas altas</td>
+          <td>30 días · renovación auto.</td>
+          <td><div class="price" style="color:var(--inmuebles);">$5,742.00</div></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">5 Super Destacados</div><div class="plan-desc">Máxima exposición</div></td>
+          <td><span class="n-props">5</span></td>
+          <td>Máxima · visitas premium</td>
+          <td>30 días · renovación auto.</td>
+          <td><div class="price" style="color:var(--inmuebles);">$11,484.00</div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Propiedades.com -->
+  <div class="section-label">Propiedades.com — Modelo freemium</div>
+  <div class="table-wrapper" style="margin-bottom:48px;">
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Descripción</th>
+          <th class="portal-col propiedades">Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="plan-name">Publicación base</div></td>
+          <td>Anuncios ilimitados, CRM básico, publicación via WhatsApp, IA para generar anuncios</td>
+          <td><span class="free-cell">✦ Gratuito ilimitado</span></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">Destacados</div></td>
+          <td>Mayor visibilidad para publicaciones existentes</td>
+          <td><span class="na-cell">Precio no público</span></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">Leads ilimitados</div><div class="plan-desc">Nuevo</div></td>
+          <td>Control total de visibilidad · segmentación de clientes</td>
+          <td><span class="na-cell">Precio no público</span></td>
+        </tr>
+        <tr>
+          <td><div class="plan-name">Micrositios</div></td>
+          <td>Vitrina profesional personalizada online</td>
+          <td><span class="na-cell">Precio no público</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes">
+    <div class="notes-title">Fuentes y notas metodológicas</div>
+    <div class="note-item"><strong>Proppit</strong> — Precios obtenidos directamente de proppit.com/?country=mx (junio 2026). Los precios tachados son el precio base antes del descuento aplicado en el plan. No válidos para proyectos. Los planes trimestrales ofrecen hasta 45% de descuento vs precio base.</div>
+    <div class="note-item"><strong>Inmuebles24</strong> — Precios obtenidos del blog oficial inmuebles24.com/blog/abc-anuncios (junio 2026). Todos los planes incluyen IVA, tienen duración de 30 días y renovación automática.</div>
+    <div class="note-item"><strong>Propiedades.com</strong> — Modelo híbrido con tres patas: (1) portal freemium con publicación gratuita e ilimitada para agentes; (2) productos premium de pago (Destacados, Leads ilimitados, Micrositios) sin precio público; (3) <strong>modelo iBuyer</strong> vía alianza con TuHabi — compran directamente la propiedad al dueño sin intermediarios ("Compramos tu casa o te ayudamos a venderla"). Este tercer modelo es una fuente de ingresos independiente del portal de anuncios.</div>
+    <div class="note-item"><strong>Proppit vs Inmuebles24</strong> — Los modelos son difícilmente comparables directamente: Proppit distribuye a múltiples portales simultáneamente (Lamudi, Mitula, Trovit, Nestoria, Nuroa); Inmuebles24 es un portal único pero con mayor tráfico en México.</div>
+  </div>
+
+  <footer>
+    <div>benchmark-mx · proppit · inmuebles24 · propiedades.com</div>
+    <div>actualizado: junio 2026</div>
+  </footer>
+
+</div>
+</body>
+</html>
